@@ -1,0 +1,95 @@
+# this is a generic make file
+# supposed to be called from test and projects paths
+
+.PRECIOUS: %.o
+
+include $(BASE)/config
+
+# standard objects to build
+ifndef OBJ
+OBJ	= main.o
+endif
+ifndef TARGET
+TARGET	= x.exe
+endif
+
+# system dependent compiler options
+ifneq ($(SYS),MSVC)
+LDFLAGS	+= -o $(TARGET)
+SHAREFLAG = -shared
+debug: CXXFLAGS += -g -Wall
+ddd:   CXXFLAGS += -g -Wall -fno-default-inline
+fast:  CXXFLAGS += -O3 -Wall -DMT_NOCHECK -DMT_NODEBUG
+prof:  CXXFLAGS += -O3 -pg -Wall -DMT_NOCHECK -DMT_NODEBUG -fno-default-inline
+prof:  LDFLAGS += -pg
+callgrind: CXXFLAGS += -O -g -Wall -DMT_NOCHECK -DMT_NODEBUG -fno-default-inline
+else
+OBJ	:= $(OBJ:%=%bj)
+LDFLAGS	+= -out:"$(TARGET)"#$(LPATHS:%=-libpath:%)
+endif
+
+
+debug: 	$(TARGET)
+ddd:	$(TARGET)
+fast:	$(TARGET)
+prof:	$(TARGET)
+callgrind: $(TARGET)
+
+clean:
+	rm -f $(TARGET)  $(OBJ)
+
+info: force
+	@echo; echo ----------------------------------------
+	@echo "     " "environment configuration (see config file)";
+	@echo ----------------------------------------; echo
+	@echo "  SYS =" "$(SYS)"
+	@echo "  PWD =" "$(PWD)"
+	@echo "  BASE =" "$(BASE)"
+	@echo "  EXTERNALS =" "$(EXTERNALS)"
+	@echo "  CXX =" "$(CXX)"
+	@echo "  CXXFLAGS =" "$(CXXFLAGS)"
+	@echo "  LINK =" "$(LINK)"
+	@echo "  LDFLAGS =" "$(LDFLAGS)"
+	@echo "  SEP =" "$(SEP)"
+	@echo "  CPATH =" "$(CPATH)"
+	@echo "  CPLUS_INCLUDE_PATH =" "$(CPLUS_INCLUDE_PATH)"
+	@echo "  STDINC =" "$(STDINC)"
+	@echo "  LPATH =" "$(LPATH)"
+	@echo "  LD_RUN_PATH =" "$(LD_RUN_PATH)"
+	@echo "  INCLUDE =" "$(INCLUDE)"
+	@echo "  LIB =" "$(LIB)"
+	@echo "  OBJ =" "$(OBJ)"
+	@echo
+
+%.exe: $(OBJ)
+	$(LINK) $(LDFLAGS) $(OBJ) $($(SYS)Libs)
+
+%.so: $(OBJ)
+	$(LINK) $(LDFLAGS) -o $@ $(OBJ) $($(SYS)Libs) $(SHAREFLAG)
+	chmod a+rx $@
+
+%.a: $(OBJ)
+	ar -crvs $@ $(OBJ)
+
+%.obj: %.cpp
+	$(CXX) $(CXXFLAGS) -o $@ -c $<
+
+%.h: %.ui
+	$(UIC) -o $*.h $<
+
+%.cpp: %.ui %.h
+	$(UIC) -o $*.cpp -i $*.h $*.ui
+
+%.moccpp: %.h
+	$(MOC) -o $*.moccpp $*.h
+
+%_moc.cpp: %.h
+	$(MOC) -o $*_moc.cpp $*.h
+
+%_$(SYS).moccpp: %.h
+	cd $(*D); $(MOC) -o $(*F)_$(SYS).moccpp $(<F)
+
+%_$(SYS).moccpp: %.h force
+	cd $(*D); $(MOC) -o $(*F)_$(SYS).moccpp $(<F)
+
+force:	;

@@ -1,0 +1,56 @@
+%% compile temporaries
+/build
+*.o
+*.a
+*.so
+callgrind.out.*
+
+%% EXECUTABLE
+*.exe
+core
+CORE
+*.log
+
+%% IDE temporaries
+*.kdev4
+.*.config
+.*.creator
+.*.creator.user*
+.*.files
+.*.includes
+.*.cflags
+.*.cxxflags
+.cproject
+.project
+*eclipse*
+
+tags
+.cccc
+
+%% git temporaries
+*.orig
+
+%% BACKUP/temporary files
+*.tmp
+*.dat
+nogit*
+*~
+z.*
+z/
+rai.log
+.#*#
+.#*
+#*#
+
+%% MAKE
+Makefile.dep
+Make.lock
+.lastMake
+makefile
+
+%% CMAKE
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+CMakeLists.txt.user
+CTestTestfile.cmake
